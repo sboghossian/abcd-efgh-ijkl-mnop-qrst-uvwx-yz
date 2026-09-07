@@ -12,6 +12,35 @@ import path from "node:path";
 import { resolveVault } from "./paths.mjs";
 import { readDir, readHead, clip } from "./fsutil.mjs";
 
+/**
+ * Read only the `tags:` field.
+ *
+ * Scanning the whole frontmatter for YAML bullets silently merges every other
+ * list-valued key — `topics:`, `related:`, `team:` — into the tags. On the
+ * reference vault that affected 24 of 397 notes, in one case surfacing
+ * teammate names as tags.
+ */
+export function parseTags(block) {
+  const inline = block.match(/^tags:\s*\[([^\]]*)\]\s*$/m);
+  if (inline && inline[1] !== undefined) {
+    return inline[1].split(",").map((t) => t.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+  }
+  const lines = block.split("\n");
+  const start = lines.findIndex((l) => /^tags:\s*$/.test(l));
+  if (start === -1) return [];
+  const out = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    const l = lines[i];
+    if (l === undefined) break;
+    const m = l.match(/^\s+-\s*(.+?)\s*$/);
+    if (m && m[1]) { out.push(m[1].replace(/^["']|["']$/g, "")); continue; }
+    if (/^\S/.test(l)) break; // next top-level key ends the tags block
+    if (l.trim() === "") continue;
+    break;
+  }
+  return out;
+}
+
 const FOLDERS = ["20-Projects", "30-Knowledge", "10-Sessions", "50-Wiki", "40-Resources"];
 
 export async function readNotes({ max = 300 } = {}) {
@@ -39,7 +68,7 @@ export async function readNotes({ max = 300 } = {}) {
       const fm = raw.match(/^---\n([\s\S]*?)\n---/);
       const block = fm ? fm[1] : "";
       const title = (block.match(/^title:\s*"?([^"\n]+)"?/m)?.[1] || path.basename(p, ".md")).trim();
-      const tags = [...block.matchAll(/^\s*-\s*([\w/-]+)$/gm)].map((x) => x[1]).slice(0, 4);
+      const tags = parseTags(block).slice(0, 4);
       const links = [...raw.matchAll(/\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)].map((x) => x[1].trim()).slice(0, 6);
       const body = raw.replace(/^---[\s\S]*?---/, "").replace(/^#.*$/gm, "").replace(/\s+/g, " ").trim();
       let updatedAt = new Date().toISOString();

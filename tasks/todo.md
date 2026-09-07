@@ -36,8 +36,10 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] Vault reader — bounded sampling, pre-computed backlinks
 - [x] `server.mjs` — 127.0.0.1, GET-only, $HOME jail, audit log
 - [x] UI reads core when up; falls back snapshot → demo
-- [ ] Test suite (in progress)
+- [x] Test suite — 63 tests, `npm test`
 - [ ] Watcher for push updates instead of 15s polling
+- [ ] Verified-socket-version list needs a real maintenance story; the running
+      CLI (2.1.263) already outran the hardcoded array
 
 ## Phase 2 — the run engine
 

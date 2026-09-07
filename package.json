@@ -12,7 +12,8 @@
     "typecheck": "tsc -b --noEmit",
     "snapshot": "node scripts/snapshot.mjs",
     "core": "node server.mjs",
-    "dev:all": "node server.mjs & vite"
+    "dev:all": "node server.mjs & vite",
+    "test": "node --test test/core.test.mjs"
   },
   "dependencies": {
     "react": "18.3.1",
