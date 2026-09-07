@@ -124,3 +124,6 @@
 @media (max-width: 860px) {
   .runs-layout { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* separates destructive/lifecycle controls from continuation controls */
+.run-controls-sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }

@@ -2,7 +2,9 @@ import "./Runs.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "../lib/store";
 import { relTime, clock, usd, shortPath } from "../lib/format";
-import { fetchRuns, fetchGates, runCreate, runSend, runInterrupt, runEnd, gateDecide, useRunEvents } from "../lib/runs";
+import { fetchRuns, fetchGates, runCreate, runSend, runInterrupt, runEnd, gateDecide, useRunEvents,
+  runResume,
+} from "../lib/runs";
 import type { RunSummary, RunState, RuntimeInfo, GateRequest, RunEvent } from "../lib/runs";
 
 /**
@@ -314,6 +316,7 @@ function RunControls({
   onSend,
   onInterrupt,
   onEnd,
+  onResume,
 }: {
   run: RunSummary;
   runtime: RuntimeInfo | null;
@@ -321,6 +324,7 @@ function RunControls({
   onSend: (text: string) => void;
   onInterrupt: () => void;
   onEnd: () => void;
+  onResume: (fork: boolean) => void;
 }) {
   const [text, setText] = useState("");
   const terminal = TERMINAL.has(run.state);
@@ -338,6 +342,16 @@ function RunControls({
         : "Only available while the run is running or awaiting input";
   const interruptTitle = terminal ? "This run has already ended" : canInterrupt ? "SIGINT — the run can recover, same as Ctrl-C" : "Nothing to interrupt yet";
   const endTitle = terminal ? "This run has already ended" : canEnd ? "Closes stdin so the run finishes cleanly" : "Nothing to end yet";
+
+  // Continuing only makes sense once a run has stopped and left a session id.
+  const canResume = terminal && Boolean(run.sessionId) && Boolean(runtime?.capabilities.resume);
+  const canFork = terminal && Boolean(run.sessionId) && Boolean(runtime?.capabilities.fork);
+  const contTitle = (verb: string, allowed: boolean) =>
+    !terminal ? `${verb} once this run has finished`
+      : !run.sessionId ? "This run never reported a session id, so there is nothing to continue"
+        : !allowed ? `${runtime?.label ?? run.runtimeId} cannot ${verb.toLowerCase()} a session`
+          : verb === "Resume" ? "Continue this session, appending to it"
+            : "Branch this session into a new id, leaving the original intact";
 
   return (
     <div className="run-controls">
@@ -367,6 +381,15 @@ function RunControls({
         </button>
         <button type="button" className="btn" disabled={!canEnd || busyAction === "end"} title={endTitle} onClick={onEnd}>
           End
+        </button>
+        <span className="run-controls-sep" />
+        <button type="button" className="btn" disabled={!canResume || busyAction === "resume"}
+          title={contTitle("Resume", canResume)} onClick={() => onResume(false)}>
+          Resume
+        </button>
+        <button type="button" className="btn" disabled={!canFork || busyAction === "fork"}
+          title={contTitle("Fork", canFork)} onClick={() => onResume(true)}>
+          Fork
         </button>
       </div>
     </div>
@@ -598,6 +621,21 @@ export function Runs() {
     if (!res.ok || !res.result?.ended) setActionError(res.error ?? "Failed to end — the run may have already ended");
     else scheduleRefresh();
   }
+  /** Continue a finished run. Fork branches it instead of appending. */
+  async function handleResume(run: RunSummary, fork: boolean) {
+    if (!run.sessionId) return;
+    setBusyAction(fork ? "fork" : "resume");
+    setActionError(null);
+    const res = await runResume({ cwd: run.cwd, sessionId: run.sessionId, runtimeId: run.runtimeId, fork });
+    setBusyAction(null);
+    if (!res.ok || !res.result) {
+      setActionError(res.error ?? `Could not ${fork ? "fork" : "resume"} this session`);
+      return;
+    }
+    setSelectedId(res.result.id);
+    refreshAll();
+  }
+
 
   if (connStatus === "checking") {
     return (
@@ -678,6 +716,7 @@ export function Runs() {
                 onSend={(text) => handleSend(selectedRun.id, text)}
                 onInterrupt={() => handleInterrupt(selectedRun.id)}
                 onEnd={() => handleEnd(selectedRun.id)}
+                onResume={(fork) => handleResume(selectedRun, fork)}
               />
               <OutputPane run={selectedRun} blocks={blocks} />
             </>

@@ -19,22 +19,35 @@ import { recordWindDown, WIND_DOWN_DEFAULT, RESUME_DEFAULT } from "./day.mjs";
 /**
  * Whether abcd will WRITE into a session it did not start.
  *
- * Off by default, and the reason is specific rather than general caution.
- * Claude Code documents the inbox socket itself — `CLAUDE_CODE_MESSAGING_SOCKET`,
- * `CLAUDE_CODE_MESSAGING_TOKEN`, and an optional first line of
- * `{"type":"auth","token":"..."}` on macOS and Linux. What it documents is a
- * script or hook posting into ITS OWN session's socket, as a child of that
- * session. The schema of the message line itself is not published, and abcd
- * does not guess a wire format it would be writing into someone's live work.
+ * Off, and after checking every supported interface, currently unimplementable
+ * rather than merely unimplemented. Written down so nobody re-investigates:
  *
- * For pushing external events into a session, Claude Code has a first-class
- * feature — channels — which is the supported route and the right place to
- * take this next. Until then abcd detects reach and reports it honestly.
+ *   SendMessage / ListAgents  The documented cross-session mechanism. Exposed
+ *                             only to Claude inside an agent's own tool loop;
+ *                             there is no external API for a third-party app.
  *
- * Note also that the receiving session governs this regardless: its
- * `crossSessionInbound` setting can accept, hold, or refuse anything that
- * arrives, and an unverified peer is held for approval in a session that
- * bypasses permission prompts.
+ *   Peer inbox socket         Transport IS documented — CLAUDE_CODE_MESSAGING_SOCKET,
+ *                             CLAUDE_CODE_MESSAGING_TOKEN, an optional
+ *                             {"type":"auth","token":"..."} first line. What is
+ *                             documented is a script posting into ITS OWN
+ *                             session as a child of it. The message schema is
+ *                             not published, and abcd will not guess a wire
+ *                             format it would be writing into live work.
+ *
+ *   Channels                  Pushes external events into a running session,
+ *                             which sounds exactly right — but a channel must
+ *                             be opted in AT LAUNCH (`claude --channels
+ *                             plugin:...`) and, during the research preview,
+ *                             only from an Anthropic-maintained allowlist. You
+ *                             cannot retrofit one into a session already
+ *                             running, so it does not reach foreign sessions.
+ *
+ * So abcd detects reach and reports it honestly, and routes real work through
+ * runs it owns, where it has full control over documented CLI flags.
+ *
+ * Channels remain interesting for a different job: a run abcd STARTS could be
+ * launched with one, giving external events a way into that run. That is a
+ * feature, not a fix for this.
  */
 export const tier2WriteEnabled = () => process.env.ABCD_TIER2_WRITE === "1";
 
@@ -56,7 +69,7 @@ export async function targets() {
       tier, sessionId, entrypoint: l.entrypoint, cwd: l.cwd,
       writable: tier === 2 && tier2WriteEnabled(),
       reason: tier === 2
-        ? (tier2WriteEnabled() ? "peer write enabled" : "reachable, but abcd does not write into sessions it did not start")
+        ? (tier2WriteEnabled() ? "peer write enabled" : "discoverable, but no supported interface writes into a session abcd did not start")
         : reachReason(l),
     });
   }
@@ -75,9 +88,8 @@ export async function broadcast(text, { only = null } = {}) {
       catch (e) { results.push({ ...t, outcome: "failed", error: String(e?.message || e) }); }
       continue;
     }
-    // The transport is documented; the message schema is not. Channels are the
-    // supported route for pushing an external event into a session.
-    results.push({ ...t, outcome: "unreachable", error: "peer write not implemented — see channels" });
+    // No supported interface exists for this; see the note on tier2WriteEnabled.
+    results.push({ ...t, outcome: "unreachable", error: "no supported interface writes into a session abcd did not start" });
   }
 
   const delivered = results.filter((r) => r.outcome === "delivered").length;

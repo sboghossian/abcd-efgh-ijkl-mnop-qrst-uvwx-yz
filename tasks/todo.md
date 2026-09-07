@@ -49,9 +49,8 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] Permission gate, fail-closed, snapshot + sha256-verified revert
 - [x] One gated `POST /api/action` + SSE `/api/events`
 - [x] Runs surface: gates first, live output, measured-vs-estimated cost
-- [ ] Resume and fork wired to the UI (the adapter supports both already)
-- [ ] Nav is full at 10 surfaces; the next one needs a different affordance
-      than a number key
+- [x] Resume and fork exposed as actions and UI, refused by capability
+- [x] Nav beyond 10 surfaces: cycle with ⌘[ / ⌘], palette is the real answer
 - [x] Codex adapter — built against real transcripts on disk, not documentation.
       Capabilities are DISCOVERED (PATH walk, no shell), so with the binary
       absent it declares "history only" rather than pretending it can spawn.
@@ -71,13 +70,13 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] Day surface: objective, facts-from-index, reconciliation, recent strip,
       reach grouped by tier with reasons verbatim, broadcast with per-target
       outcomes
-- [ ] **Tier-2 write: use channels, not the peer socket.** The socket transport
-      IS documented (`CLAUDE_CODE_MESSAGING_SOCKET`, `CLAUDE_CODE_MESSAGING_TOKEN`,
-      `{"type":"auth","token":"..."}` first line) but only for a script posting
-      into its OWN session as a child of it. The message schema is unpublished.
-      Claude Code has a first-class feature for pushing external events into a
-      session — channels — and that is the supported route. Read
-      /docs/en/channels before implementing.
+- [x] **Tier-2 write: closed as unimplementable, not deferred.** Every
+      supported interface was checked. SendMessage/ListAgents are internal to
+      an agent's tool loop. The peer socket's transport is documented but its
+      message schema is not, and it is designed for a session's own children.
+      Channels must be opted in AT LAUNCH via `--channels`, so they cannot be
+      retrofitted into a running session. abcd therefore detects reach and
+      reports it, and routes real work through runs it owns.
 - [ ] Note for users: the RECEIVING session governs delivery via
       `crossSessionInbound` (accept / hold / refuse), so abcd must surface that
       rather than claim delivery it cannot guarantee

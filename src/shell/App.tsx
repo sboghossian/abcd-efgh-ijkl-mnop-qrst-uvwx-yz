@@ -111,7 +111,7 @@ function TopBar() {
         )}
         <span className="stat"><span className="dot s-working" /> {live} working</span>
         <span className="stat"><span className="dot s-needs-input" /> {blocked} blocked</span>
-        <button className="kbd" onClick={() => dispatch({ type: "palette", open: true })}>⌘K</button>
+        <button className="kbd" title="Command palette — every surface, however many there are" onClick={() => dispatch({ type: "palette", open: true })}>⌘K</button>
       </div>
     </header>
   );
@@ -136,11 +136,22 @@ export function App() {
       if (meta && /^[0-9]$/.test(e.key)) {
         const hit = NAV.find((n) => n.key === e.key);
         if (hit) { e.preventDefault(); dispatch({ type: "surface", id: hit.id }); }
+        return;
+      }
+      // Ten surfaces exhaust the number keys. Rather than invent an
+      // undiscoverable eleventh binding, cycle with the bracket keys and let
+      // the palette be the affordance that does not run out.
+      if (meta && (e.key === "[" || e.key === "]")) {
+        e.preventDefault();
+        const i = NAV.findIndex((n) => n.id === ui.surface);
+        const next = (i + (e.key === "]" ? 1 : -1) + NAV.length) % NAV.length;
+        const target = NAV[next];
+        if (target) dispatch({ type: "surface", id: target.id });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [ui.paletteOpen, ui.focusMode, dispatch]);
+  }, [ui.paletteOpen, ui.focusMode, ui.surface, dispatch]);
 
   return (
     <div className="app">

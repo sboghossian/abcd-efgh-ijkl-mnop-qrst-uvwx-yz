@@ -147,19 +147,26 @@ async function postAction<T = unknown>(action: string, params: Record<string, un
 }
 
 /**
- * NOTE ON FAILURE SHAPE: confirmed against the live server that these four
- * actions never throw for a bad/stale id — they resolve normally with an
- * inner falsy sentinel (HTTP 200, outer envelope `{ok:true}`). e.g.
- * `POST run.send {id:"nope"}` → `{ok:true, result:{sent:false}}`. So a
- * caller MUST check `result.sent` / `result.interrupted` / `result.ended`,
- * not just the outer `ok` — the outer envelope alone cannot distinguish
- * "the run doesn't exist anymore" from "it worked".
+ * Action results carry an inner payload as well as the outer envelope. An
+ * unknown or stale run id now REJECTS with `{ok:false, error:"no such run ..."}`
+ * rather than resolving with a falsy sentinel, so the outer envelope is
+ * meaningful — but the inner value still says what actually happened, e.g.
+ * `{ended:false}` when a run had already finished. Check both.
  */
 export const runCreate = (params: RunCreateParams) => postAction<RunSummary>("run.create", { ...params });
 export const runSend = (id: string, text: string) => postAction<{ sent: boolean }>("run.send", { id, text });
 export const runInterrupt = (id: string) => postAction<{ interrupted: boolean }>("run.interrupt", { id });
 export const runEnd = (id: string) => postAction<{ ended: boolean }>("run.end", { id });
 export const runInterruptAll = () => postAction<{ interrupted: number }>("run.interruptAll", {});
+
+/**
+ * Continue a previous session. `fork` branches it into a new id instead of
+ * appending, so an alternative can be explored without losing the original.
+ * Refused by a runtime whose adapter declares it cannot do either.
+ */
+export const runResume = (params: {
+  cwd: string; sessionId: string; prompt?: string; model?: string; runtimeId?: string; fork?: boolean;
+}) => postAction<RunSummary>("run.resume", { ...params });
 
 /** Same inner-sentinel wrinkle: an unknown gate id resolves `{ok:false, reason}` at HTTP 200. */
 export type GateDecideResult =

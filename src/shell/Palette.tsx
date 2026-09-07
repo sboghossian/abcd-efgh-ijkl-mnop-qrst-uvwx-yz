@@ -58,7 +58,7 @@ export function Palette() {
           ))}
           {hits.length === 0 && <div className="palette-empty">Nothing matches “{q}”.</div>}
         </div>
-        <div className="palette-foot mono">↑↓ navigate · ↵ select · esc dismiss</div>
+        <div className="palette-foot mono">↑↓ navigate · ↵ select · esc dismiss · ⌘[ ⌘] cycle surfaces</div>
       </div>
     </div>
   );

@@ -193,6 +193,20 @@ export class RunManager extends EventEmitter {
     return [...this.runs.values()].filter((r) => !TERMINAL.has(r.state)).length;
   }
 
+  /**
+   * Continue an existing session. `fork: true` branches it into a new id
+   * instead of appending, which is how you explore an alternative without
+   * losing the original — the "git for sessions" idea from the catalogue.
+   */
+  resume({ runtimeId = "claude", cwd, sessionId, fork = false, ...opts }) {
+    const rt = getRuntime(runtimeId);
+    if (!rt) throw new Error(`unknown runtime "${runtimeId}"`);
+    if (!sessionId) throw new Error("resume needs a sessionId");
+    if (fork && !rt.capabilities.fork) throw new Error(`${runtimeId} cannot fork a session`);
+    if (!fork && !rt.capabilities.resume) throw new Error(`${runtimeId} cannot resume a session`);
+    return this.create({ runtimeId, cwd, resume: sessionId, fork, ...opts });
+  }
+
   create({ runtimeId = "claude", cwd, ...opts }) {
     if (this.active >= this.maxConcurrent) throw new Error(`concurrency cap reached (${this.maxConcurrent})`);
     const id = `run_${crypto.randomUUID().slice(0, 8)}`;

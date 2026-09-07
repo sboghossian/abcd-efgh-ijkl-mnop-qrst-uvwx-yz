@@ -35,6 +35,12 @@ const ACTIONS = {
     run.start();
     return run.summary();
   },
+  "run.resume": ({ cwd, sessionId, prompt, model, runtimeId, fork }) => {
+    const settingsFile = gate.writeGateSettingsFile(`run_${Date.now()}`, HOOK_PATH);
+    const run = manager.resume({ runtimeId: runtimeId || "claude", cwd, sessionId, fork: Boolean(fork), prompt, model, settingsFile });
+    run.start();
+    return run.summary();
+  },
   "run.send": ({ id, text }) => ({ sent: manager.require(id).send(text) }),
   "run.interrupt": ({ id }) => ({ interrupted: manager.require(id).interrupt() }),
   "run.end": ({ id }) => ({ ended: manager.require(id).end() }),
