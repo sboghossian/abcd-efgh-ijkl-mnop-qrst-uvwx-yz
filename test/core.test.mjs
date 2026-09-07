@@ -420,10 +420,41 @@ describe("registry.mjs", () => {
     assert.equal(Registry.tierFor(null), 3);
   });
 
-  test("tierFor: live but no socket -> 1; live+socket+verified version -> 2; live+socket+unverified version -> 1", () => {
-    assert.equal(Registry.tierFor({ hasSocket: false }), 1);
-    assert.equal(Registry.tierFor({ hasSocket: true, version: "2.1.178" }), 2);
-    assert.equal(Registry.tierFor({ hasSocket: true, version: "9.9.9" }), 1);
+  // Reach is gated on what the PEER advertises, never on a CLI version string,
+  // which goes stale the moment the user updates.
+  const peer = (over = {}) => ({
+    hasSocket: true, keyFile: "/x/1.key", peerProtocol: 1, peerFeatures: [], ...over,
+  });
+
+  test("tierFor: a session without a socket is tier 1, never tier 2", () => {
+    assert.equal(Registry.tierFor(peer({ hasSocket: false })), 1);
+  });
+
+  test("tierFor: a socket without a peer token is tier 1", () => {
+    assert.equal(Registry.tierFor(peer({ keyFile: null })), 1);
+  });
+
+  test("tierFor: a supported peer protocol reaches tier 2", () => {
+    assert.equal(Registry.tierFor(peer()), 2);
+  });
+
+  test("tierFor: an unknown peer protocol degrades to tier 1, it does not guess", () => {
+    assert.equal(Registry.tierFor(peer({ peerProtocol: 99 })), 1);
+    assert.equal(Registry.tierFor(peer({ peerProtocol: null })), 1);
+  });
+
+  test("tierFor: a NEW CLI version alone must not change the tier", () => {
+    // The whole point of gating on peerProtocol: bumping the CLI must not
+    // silently downgrade every session the way a version allowlist would.
+    assert.equal(Registry.tierFor(peer({ version: "9.9.9" })), 2);
+  });
+
+  test("reachReason: says why, in words, for each way reach fails", () => {
+    assert.match(Registry.reachReason(null), /not running/i);
+    assert.match(Registry.reachReason(peer({ hasSocket: false })), /socket/i);
+    assert.match(Registry.reachReason(peer({ keyFile: null })), /token/i);
+    assert.match(Registry.reachReason(peer({ peerProtocol: 99 })), /protocol/i);
+    assert.equal(Registry.reachReason(peer()), "reachable");
   });
 });
 
