@@ -57,8 +57,24 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 
 ## Phase 3 — reach and the day
 
-- [ ] Tier 2 socket control with version detection and read-only fallback
-- [ ] Broadcast, wind-down, day open/close reconciliation
+- [x] Reach gated on `peerProtocol` + `peerFeatures`, not a CLI version string
+      (self-maintaining: the protocol advertises its own version)
+- [x] `reachReason()` — every session says WHY it is or is not reachable
+- [x] Day loop: open, objective, facts-from-index, close, reconciliation
+- [x] Broadcast with per-target outcomes; nothing is ever silently dropped
+- [x] Wind-down + resume, cooperative by design
+- [x] `/api/day`, `/api/targets`, and the day/broadcast actions
+- [ ] UI for the day loop and broadcast targets
+- [ ] **Tier-2 write: use channels, not the peer socket.** The socket transport
+      IS documented (`CLAUDE_CODE_MESSAGING_SOCKET`, `CLAUDE_CODE_MESSAGING_TOKEN`,
+      `{"type":"auth","token":"..."}` first line) but only for a script posting
+      into its OWN session as a child of it. The message schema is unpublished.
+      Claude Code has a first-class feature for pushing external events into a
+      session — channels — and that is the supported route. Read
+      /docs/en/channels before implementing.
+- [ ] Note for users: the RECEIVING session governs delivery via
+      `crossSessionInbound` (accept / hold / refuse), so abcd must surface that
+      rather than claim delivery it cannot guarantee
 
 ## Phase 4 — harness surfaces on real data
 ## Phase 5 — open source, signed macOS build

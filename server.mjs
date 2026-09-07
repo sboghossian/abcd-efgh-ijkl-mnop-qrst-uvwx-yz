@@ -21,6 +21,8 @@ import "./core/runtime/claude.mjs";
 import { manager } from "./core/runtime/manager.mjs";
 import { listRuntimes } from "./core/runtime/adapter.mjs";
 import * as gate from "./core/runtime/gate.mjs";
+import * as day from "./core/day.mjs";
+import * as broadcast from "./core/broadcast.mjs";
 
 const HOOK_PATH = path.resolve("core/runtime/gate-hook.mjs");
 
@@ -37,6 +39,12 @@ const ACTIONS = {
   "run.end": ({ id }) => ({ ended: manager.require(id).end() }),
   "run.interruptAll": () => ({ interrupted: manager.interruptAll() }),
   "gate.decide": ({ id, decision, reason }) => gate.decide(id, decision, reason),
+  "day.open": ({ objective }) => day.openDay(objective ?? ""),
+  "day.objective": ({ objective }) => day.setObjective(objective ?? ""),
+  "day.close": ({ note }) => day.closeDay(undefined, note ?? ""),
+  "broadcast.send": ({ text, only }) => broadcast.broadcast(text, { only: only ?? null }),
+  "broadcast.windDown": ({ text }) => broadcast.windDown(text || undefined),
+  "broadcast.resume": ({ text }) => broadcast.resumeAll(text || undefined),
   "gate.revert": ({ snapshot, expectCurrentSha }) => gate.revertFile(snapshot, { expectCurrentSha }),
 };
 
@@ -134,6 +142,12 @@ const server = http.createServer(async (req, res) => {
       }
       case "/api/gates": {
         return json(res, 200, { pending: gate.listPending() });
+      }
+      case "/api/day": {
+        return json(res, 200, { day: day.readDay(), facts: day.dayFacts(), recent: day.recentDays(14) });
+      }
+      case "/api/targets": {
+        return json(res, 200, { targets: await broadcast.targets(), tier2Write: broadcast.tier2WriteEnabled() });
       }
       case "/api/events": {
         // Server-sent events: live run output without polling.
