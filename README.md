@@ -112,6 +112,58 @@ price table applied to observed tokens. On a subscription there is no per-token
 bill, so the figure is derived, never billed. Cache reads typically dominate the
 token count and that is normal.
 
+## Desktop app
+
+```bash
+npm run build          # the renderer
+npm run desktop        # run the shell against it
+npm run dist           # package a DMG into release/
+```
+
+The shell is deliberately thin. It owns a window, a tray, keep-awake, and
+nothing else — `core/` runs as a **sidecar process**, not inside Electron.
+
+That is a correctness requirement, not tidiness. Electron bundles its own Node
+(Electron 33 ships Node 20.18) and the history index uses `node:sqlite`, which
+needs Node 22.5+. Mounting core inside the shell would couple the index to
+whichever Node the shell happens to ship, and re-couple it on every Electron
+upgrade. As a sidecar the two are independent, a core crash cannot take the
+window down, and swapping Electron for Tauri is a shell swap rather than a
+rewrite. A lint rule enforces the boundary:
+
+```bash
+npm run lint:core      # fails if anything in core/ imports Electron
+```
+
+The cost, stated plainly: **abcd needs Node 22.5+ on your PATH.** It already
+needs the `claude` CLI, so this is not a new class of dependency, but it is
+one. Point abcd at a specific Node with `ABCD_NODE=/path/to/node`. Without a
+suitable Node the app still opens and says so, showing synthetic data.
+
+### Signing
+
+The build is **unsigned**. Producing a signed, notarised artifact needs
+credentials only the project owner has:
+
+* **macOS** — a paid Apple Developer account and a *Developer ID Application*
+  certificate in your keychain. Then:
+
+  ```bash
+  export APPLE_ID="you@example.com"
+  export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+  export APPLE_TEAM_ID="XXXXXXXXXX"
+  npm run dist                       # signs and notarises
+  ```
+
+  `build/entitlements.mac.plist` already grants what the hardened runtime needs
+  to spawn the `claude` CLI.
+
+* **Windows** — an Authenticode certificate from a recognised CA.
+* **Linux** — nothing; an unsigned AppImage is normal.
+
+Until then macOS Gatekeeper will refuse the app on another machine. That is
+correct behaviour, not a bug in the build.
+
 ## How it reaches Claude Code
 
 Three tiers, because a session's reachability depends on how it was born.

@@ -15,3 +15,4 @@ scripts/group-rules.local.json
 docs/SPEC.html
 .env.local
 scripts/paths.local.json
+release

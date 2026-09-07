@@ -24,6 +24,7 @@ import { listRuntimes } from "./core/runtime/adapter.mjs";
 import * as gate from "./core/runtime/gate.mjs";
 import * as day from "./core/day.mjs";
 import * as broadcast from "./core/broadcast.mjs";
+import * as settings from "./core/settings.mjs";
 
 const HOOK_PATH = path.resolve("core/runtime/gate-hook.mjs");
 
@@ -46,6 +47,8 @@ const ACTIONS = {
   "run.end": ({ id }) => ({ ended: manager.require(id).end() }),
   "run.interruptAll": () => ({ interrupted: manager.interruptAll() }),
   "gate.decide": ({ id, decision, reason }) => gate.decide(id, decision, reason),
+  "settings.patch": ({ patch }) => settings.patchSettings(patch),
+  "settings.revert": ({ snapshot, force }) => settings.revertSettings(snapshot ?? null, { force: Boolean(force) }),
   "day.open": ({ objective }) => day.openDay(objective ?? ""),
   "day.objective": ({ objective }) => day.setObjective(objective ?? ""),
   "day.close": ({ note }) => day.closeDay(undefined, note ?? ""),
@@ -84,7 +87,7 @@ const json = (res, code, body) => {
   res.end(s);
 };
 
-const server = http.createServer(async (req, res) => {
+export const handler = async (req, res) => {
   const url = new URL(req.url, `http://${HOST}:${PORT}`);
   audit("http.request", { method: req.method, path: url.pathname });
 
@@ -153,6 +156,13 @@ const server = http.createServer(async (req, res) => {
       case "/api/day": {
         return json(res, 200, { day: day.readDay(), facts: day.dayFacts(), recent: day.recentDays(14) });
       }
+      case "/api/settings": {
+        return json(res, 200, {
+          settings: settings.readSettings(),
+          writable: [...settings.WRITABLE],
+          history: settings.settingsHistory(),
+        });
+      }
       case "/api/targets": {
         return json(res, 200, { targets: await broadcast.targets(), tier2Write: broadcast.tier2WriteEnabled() });
       }
@@ -182,11 +192,33 @@ const server = http.createServer(async (req, res) => {
     audit("http.error", { path: url.pathname, message: String(e?.message || e) });
     return json(res, 500, { error: String(e?.message || e) });
   }
-});
+};
 
-server.listen(PORT, HOST, () => {
-  gate.ensureGateDirs();
-  console.log(`abcd core  →  http://${HOST}:${PORT}   (localhost only · one gated action endpoint)`);
-  audit("server.start", { port: PORT });
-  getState().then((p) => console.log(`  warm: ${p.state.sessions.length} sessions, ${p.meta.index.days} days indexed`));
-});
+export function createServer() { return http.createServer(handler); }
+
+/**
+ * Mountable so the Electron shell reuses this exact server rather than
+ * duplicating the API surface. One implementation, two hosts.
+ */
+export function start({ port = PORT, host = HOST, warm = true } = {}) {
+  const server = createServer();
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, host, () => {
+      gate.ensureGateDirs();
+      audit("server.start", { port, host });
+      if (warm) getState().catch(() => {});
+      resolve({ server, port, host, close: () => new Promise((r) => server.close(r)) });
+    });
+  });
+}
+
+// Run directly (`npm run core`) rather than imported by the desktop shell.
+const runDirect = process.argv[1] && process.argv[1].endsWith("server.mjs");
+if (runDirect) {
+  start().then(async ({ port, host }) => {
+    console.log(`abcd core  →  http://${host}:${port}   (localhost only · one gated action endpoint)`);
+    const p = await getState();
+    console.log(`  warm: ${p.state.sessions.length} sessions, ${p.meta.index.days} days indexed`);
+  }).catch((e) => { console.error("abcd core failed to start:", e.message); process.exit(1); });
+}

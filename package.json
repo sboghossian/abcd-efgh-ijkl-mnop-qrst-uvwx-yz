@@ -13,7 +13,11 @@
     "snapshot": "node scripts/snapshot.mjs",
     "core": "node server.mjs",
     "dev:all": "node server.mjs & vite",
-    "test": "node --test test/core.test.mjs"
+    "test": "node --test test/core.test.mjs",
+    "desktop": "electron .",
+    "desktop:dev": "ABCD_DEV_URL=http://localhost:4488 electron .",
+    "dist": "npm run build && electron-builder --publish never",
+    "lint:core": "node scripts/check-core-purity.mjs"
   },
   "dependencies": {
     "react": "18.3.1",
@@ -23,10 +27,67 @@
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.4",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
     "typescript": "5.7.2",
     "vite": "6.0.7"
   },
   "allowScripts": {
-    "esbuild@0.24.2": true
+    "esbuild@0.24.2": true,
+    "electron@33.2.1": true
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "dev.abcd.app",
+    "productName": "abcd",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "core/**",
+      "electron/**",
+      "server.mjs",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.cjs"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "npmRebuild": false,
+    "asarUnpack": [
+      "server.mjs",
+      "core/**"
+    ]
+  },
+  "engines": {
+    "node": ">=22.5"
   }
 }

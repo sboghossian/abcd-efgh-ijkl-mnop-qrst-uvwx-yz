@@ -81,9 +81,33 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
       `crossSessionInbound` (accept / hold / refuse), so abcd must surface that
       rather than claim delivery it cannot guarantee
 
-## Phase 4 — harness surfaces on real data
-## Phase 5 — open source, signed macOS build
+## Phase 4 — harness surfaces on real data (SHIPPED)
+
+- [x] Every surface already read real data via /api/state
+- [x] Settings WRITES: allowlisted keys only, snapshot + sha256 revert, atomic
+      temp-file rename, refuses `hooks` outright. Round-trip verified
+      byte-identical against the real settings.json
+## Phase 5 — packaging (SHIPPED, unsigned)
+
+- [x] Electron shell, CommonJS entry (Electron's module is CJS)
+- [x] core/ as a SIDECAR — Electron 33 ships Node 20.18, node:sqlite needs 22.5
+- [x] `npm run lint:core` enforces zero Electron imports in core/, and the
+      check was proven to fail when violated
+- [x] asarUnpack for server.mjs + core/ — a child process cannot be spawned
+      from inside app.asar. Only shows up in a packaged build
+- [x] DMGs built and the PACKAGED app verified running the real sidecar
+- [ ] SIGNING — blocked on an Apple Developer account + Developer ID cert.
+      Config and entitlements are in place; run `npm run dist` with
+      APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID set
 ## Phase 6 — Linux, then Windows
+
+- [x] `core/platform.mjs` — socket kind, scheduler, keep-awake, vault
+      candidates and signing requirement, per platform. Reports `supported`
+      rather than throwing, so the UI shows unavailable instead of failing
+- [x] electron-builder targets for AppImage and NSIS
+- [ ] UNVERIFIED on Linux and Windows: I have no machine to run them on.
+      macOS is `primary`, Linux `secondary`, Windows `untested`, and
+      describePlatform() says so rather than implying parity
 
 ## Open questions
 
