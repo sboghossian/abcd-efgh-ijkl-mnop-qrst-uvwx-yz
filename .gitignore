@@ -1,0 +1,17 @@
+node_modules
+node_modules/
+dist
+.DS_Store
+*.local
+.vite
+.gstack/
+
+# real-data snapshot, never commit
+src/fixtures/*.local.ts
+tsconfig.tsbuildinfo
+
+# personal grouping rules and the private spec stay local
+scripts/group-rules.local.json
+docs/SPEC.html
+.env.local
+scripts/paths.local.json

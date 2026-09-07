@@ -1,0 +1,93 @@
+/* ---------------- system architecture canvas ---------------- */
+
+.sys { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+
+.sys-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding: 14px 18px 10px; border-bottom: 1px solid var(--line); flex: none;
+}
+.sys-head-l { display: grid; gap: 4px; max-width: 62ch; }
+.sys-honest { font-size: 11px; color: var(--ink-3); }
+
+.sys-controls { display: flex; align-items: center; gap: 6px; flex: none; }
+.sys-controls .btn { min-width: 26px; padding: 5px 9px; text-align: center; }
+.sys-zoom-pct { min-width: 3.4em; text-align: center; font-size: 11px; color: var(--ink-3); }
+
+.sys-canvas {
+  position: relative; flex: 1; min-height: 0; overflow: hidden;
+  background: var(--ground); cursor: grab; touch-action: none;
+}
+.sys-canvas:active { cursor: grabbing; }
+
+.sys-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.sys-svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.sys-edge-label { font-family: var(--f-mono); font-size: 10px; }
+
+.sys-node {
+  position: absolute; display: grid; align-content: start; gap: 4px;
+  padding: 8px 10px; background: var(--surface); border: 1px solid var(--line);
+  border-left-width: 3px; border-left-style: solid; border-radius: var(--r-md);
+  box-shadow: var(--shadow-1); cursor: pointer; text-align: left;
+}
+.sys-node:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
+.sys-node-top { display: flex; align-items: center; gap: 6px; }
+.sys-node-swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.sys-node-kind { flex: 1; }
+.sys-node-label {
+  font-family: var(--f-ui); font-size: 12.5px; font-weight: 600; color: var(--ink); line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sys-node-detail {
+  font-size: 10.5px; color: var(--ink-2); line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---------------- legend ---------------- */
+
+.sys-legend {
+  display: flex; gap: 8px 22px; flex-wrap: wrap; padding: 10px 18px 12px;
+  border-top: 1px solid var(--line); background: var(--surface); flex: none;
+}
+.sys-legend-col { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.sys-legend-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--ink-2); }
+.sys-legend-swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+
+/* ---------------- inspector ---------------- */
+
+.sys-inspector {
+  position: absolute; top: 14px; right: 14px; width: min(300px, calc(100% - 28px));
+  max-height: calc(100% - 28px); background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-2); display: flex; flex-direction: column;
+  overflow: hidden; z-index: 5;
+}
+.sys-inspector-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  padding: 12px 12px 8px; border-bottom: 1px solid var(--line);
+}
+.sys-inspector-head h3 { font-size: 15px; margin-top: 2px; }
+.sys-inspector-close {
+  border: 0; background: none; color: var(--ink-3); cursor: pointer; padding: 4px; border-radius: var(--r-sm); flex: none;
+}
+.sys-inspector-close:hover { background: var(--surface-2); color: var(--ink); }
+.sys-inspector-body { padding: 10px 12px 12px; overflow: auto; display: grid; gap: 10px; }
+.sys-inspector-detail { font-size: 11.5px; color: var(--ink-2); padding: 0 12px; }
+.sys-inspector-status { display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 11px; color: var(--ink-2); }
+
+.sys-meta { width: 100%; border-collapse: collapse; font-size: 11px; margin: 0 12px; width: calc(100% - 24px); }
+.sys-meta td { padding: 3px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sys-meta td:first-child { color: var(--ink-3); padding-right: 10px; white-space: nowrap; }
+.sys-meta td:last-child { color: var(--ink); text-align: right; word-break: break-word; }
+
+.sys-inspector-edges { padding: 0 12px; display: grid; gap: 6px; }
+.sys-inspector-edges ul { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 4px; }
+.sys-inspector-edges li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+.sys-edge-link { border: 0; background: none; color: var(--wire); cursor: pointer; padding: 0; font-size: 11px; text-align: left; }
+.sys-edge-link:hover { text-decoration: underline; }
+.sys-edge-none { color: var(--ink-3); }
+
+.sys-inspector-honest {
+  margin: 4px 12px 12px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 10.5px; color: var(--ink-3);
+}
+
+.sys-empty { padding: 28px; text-align: center; color: var(--ink-3); font-size: 13px; }

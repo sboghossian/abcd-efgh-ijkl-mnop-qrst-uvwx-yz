@@ -1,0 +1,170 @@
+/* ============================================================
+   abcd design system
+   Discipline inherited from DESIGN_SPEC.md; palette is abcd's own.
+   - Four type roles, never mixed outside role
+   - Accent is a verb: active state and primary action only
+   - Mono for every datum: ids, paths, counts, timestamps, status
+   - No gradients
+   ============================================================ */
+
+:root {
+  /* light — drafting vellum, teal-biased neutrals */
+  --ground: #edf1f0;
+  --surface: #ffffff;
+  --surface-2: #e4eae8;
+  --surface-3: #dae2e0;
+  --line: #cbd5d2;
+  --line-strong: #a5b5b2;
+  --ink: #0f1f1e;
+  --ink-2: #3c504d;
+  --ink-3: #6c7c7a;
+
+  --wire: #0b6e90;
+  --wire-ink: #ffffff;
+  --wire-soft: #0b6e9016;
+
+  --run: #2c7a50;
+  --wait: #a87513;
+  --fail: #a5443a;
+  --idle: #7a8a88;
+  --incognito: #6b5a8f;
+
+  --shadow-1: 0 1px 2px rgba(15, 31, 30, 0.06);
+  --shadow-2: 0 8px 24px -12px rgba(15, 31, 30, 0.22);
+
+  --f-disp: "IBM Plex Sans Condensed", -apple-system, "Helvetica Neue", sans-serif;
+  --f-ui: "IBM Plex Sans", -apple-system, "Helvetica Neue", sans-serif;
+  --f-prose: "IBM Plex Serif", Georgia, serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --rail-w: 56px;
+  --topbar-h: 40px;
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 6px;
+}
+
+/* dark is the working default for this tool: unstamped + system-dark, and explicit dark */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0d1416;
+    --surface: #141e20;
+    --surface-2: #1c282a;
+    --surface-3: #243233;
+    --line: #2a393b;
+    --line-strong: #405658;
+    --ink: #e7efed;
+    --ink-2: #a8bbb8;
+    --ink-3: #788b89;
+    --wire: #45b4dc;
+    --wire-ink: #06181f;
+    --wire-soft: #45b4dc1f;
+    --run: #4eae78;
+    --wait: #d4a53e;
+    --fail: #d37269;
+    --idle: #6d8180;
+    --incognito: #9d8ac4;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #0d1416;
+  --surface: #141e20;
+  --surface-2: #1c282a;
+  --surface-3: #243233;
+  --line: #2a393b;
+  --line-strong: #405658;
+  --ink: #e7efed;
+  --ink-2: #a8bbb8;
+  --ink-3: #788b89;
+  --wire: #45b4dc;
+  --wire-ink: #06181f;
+  --wire-soft: #45b4dc1f;
+  --run: #4eae78;
+  --wait: #d4a53e;
+  --fail: #d37269;
+  --idle: #6d8180;
+  --incognito: #9d8ac4;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+h1, h2, h3 { font-family: var(--f-disp); font-weight: 600; margin: 0; line-height: 1.15; text-wrap: balance; }
+p { margin: 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--wire); outline-offset: 1px; }
+
+/* ---- shared primitives ---- */
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.prose { font-family: var(--f-prose); }
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.chip {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  display: inline-block;
+}
+.s-working { color: var(--run); }
+.s-needs-input { color: var(--wait); }
+.s-idle { color: var(--idle); }
+.s-completed { color: var(--ink-3); }
+.s-failed { color: var(--fail); }
+.s-incognito { color: var(--incognito); }
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; flex: none; }
+
+.btn {
+  font-family: var(--f-ui);
+  font-size: 12.5px;
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 5px 11px;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--line-strong); }
+.btn-primary { background: var(--wire); color: var(--wire-ink); border-color: var(--wire); }
+.btn-primary:hover { filter: brightness(1.08); border-color: var(--wire); }
+.btn-ghost { background: none; border-color: transparent; color: var(--ink-2); }
+.btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+.scroll { overflow: auto; scrollbar-width: thin; }
+.scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
+.scroll::-webkit-scrollbar-thumb:hover { background: var(--line-strong); background-clip: content-box; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

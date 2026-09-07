@@ -1,0 +1,81 @@
+/* ---------------- Kanban / Board surface ---------------- */
+.kb-page { display: flex; flex-direction: column; gap: 0; padding-bottom: 22px; }
+
+.kb-intro { font-size: 13px; color: var(--ink-2); max-width: 72ch; margin-bottom: 16px; }
+
+/* ---- filter row ---- */
+.kb-filters {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex-wrap: wrap; margin-bottom: 16px;
+}
+.kb-filter-groups { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.kb-chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: 0.02em;
+  padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink-2); cursor: pointer;
+}
+.kb-chip:hover { border-color: var(--line-strong); color: var(--ink); }
+.kb-chip.on { border-color: var(--wire); color: var(--wire); background: var(--wire-soft); }
+
+.kb-toggle {
+  font-size: 11.5px; padding: 5px 12px; border-radius: var(--r-sm); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); cursor: pointer; white-space: nowrap;
+}
+.kb-toggle:hover { border-color: var(--line-strong); color: var(--ink); }
+.kb-toggle.on { border-color: var(--wire); color: var(--wire); background: var(--wire-soft); }
+
+/* ---- board ---- */
+.kb-board {
+  display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; padding-bottom: 14px;
+}
+.kb-col {
+  flex: 0 0 246px; width: 246px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); display: flex; flex-direction: column; min-height: 120px;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.kb-col.drag-over { border-color: var(--wire); background: var(--wire-soft); }
+
+.kb-col-head {
+  display: flex; align-items: center; gap: 7px; padding: 11px 12px; border-bottom: 1px solid var(--line);
+}
+.kb-col-title { font-family: var(--f-ui); font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.kb-col-count { font-size: 11px; color: var(--ink-3); margin-left: auto; }
+
+.kb-col-body {
+  display: flex; flex-direction: column; gap: 8px; padding: 10px; max-height: 62vh; overflow-y: auto;
+}
+.kb-empty {
+  padding: 22px 10px; text-align: center; color: var(--ink-3); font-size: 12px; font-family: var(--f-prose);
+}
+
+/* ---- drop note ---- */
+.kb-note {
+  display: flex; align-items: flex-start; gap: 8px; margin: 8px 10px 0; padding: 8px 9px;
+  background: var(--surface-2); border: 1px solid var(--line-strong); border-left: 2px solid var(--wire);
+  border-radius: var(--r-sm); animation: kb-note-in 0.16s ease;
+}
+.kb-note p { font-size: 11.5px; color: var(--ink-2); line-height: 1.4; }
+.kb-note strong { color: var(--ink); font-weight: 600; }
+.kb-note-close {
+  margin-left: auto; flex: none; border: 0; background: none; color: var(--ink-3); cursor: pointer;
+  padding: 2px; border-radius: var(--r-sm); display: grid; place-items: center;
+}
+.kb-note-close:hover { color: var(--ink); background: var(--surface-3); }
+@keyframes kb-note-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
+/* ---- card ---- */
+.kb-card {
+  display: flex; flex-direction: column; gap: 7px; padding: 10px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--r-md); cursor: grab; text-align: left;
+}
+.kb-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-1); }
+.kb-card:active { cursor: grabbing; }
+.kb-card-title { font-size: 12.5px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.kb-card-group { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-2); }
+.kb-card-nogroup { color: var(--ink-3); font-style: italic; }
+.kb-card-meta, .kb-card-stats {
+  display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: var(--ink-3); flex-wrap: wrap;
+}
+.kb-card-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 1px; }
+.kb-badge { display: inline-flex; align-items: center; gap: 4px; }
+.kb-badge-neutral { color: var(--ink-3); }

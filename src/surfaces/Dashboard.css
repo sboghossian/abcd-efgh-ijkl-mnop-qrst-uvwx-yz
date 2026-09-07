@@ -1,0 +1,77 @@
+/* ---------------- dashboard ---------------- */
+
+.dash { height: 100%; }
+.dash-inner { padding: 22px 26px 40px; display: grid; gap: 26px; max-width: 1180px; }
+.dash .muted { color: var(--ink-3); }
+
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 26px; align-items: start; }
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+.cost-note { margin-top: 8px; font-size: 11px; color: var(--ink-3); max-width: 70ch; }
+.stat-est { font-size: 9px; color: var(--ink-3); margin-left: 3px; vertical-align: super; }
+
+/* ---------------- heatmap ---------------- */
+
+.heat-panel { padding: 16px 18px 14px; }
+.heat-wrap { overflow-x: auto; }
+.heat-inner { display: flex; gap: 8px; width: max-content; }
+.heat-daylabels { display: flex; flex-direction: column; gap: 3px; padding-top: 16px; flex: none; }
+.heat-daylabel-spacer { height: 0; }
+.heat-daylabel { height: 11px; line-height: 11px; font-size: 9px; color: var(--ink-3); }
+.heat-main { display: grid; gap: 4px; }
+.heat-months { display: flex; gap: 3px; height: 12px; }
+.heat-month { width: 11px; font-size: 9px; color: var(--ink-3); font-family: var(--f-mono); white-space: nowrap; overflow: visible; }
+.heat-weeks { display: flex; gap: 3px; }
+.heat-col { display: flex; flex-direction: column; gap: 3px; }
+.heat-cell {
+  width: 11px; height: 11px; border-radius: 2px; background: var(--wire); display: block; flex: none;
+}
+.heat-cell.heat-blank { visibility: hidden; }
+.heat-cell.level-0 { opacity: 0.1; }
+.heat-cell.level-1 { opacity: 0.32; }
+.heat-cell.level-2 { opacity: 0.52; }
+.heat-cell.level-3 { opacity: 0.74; }
+.heat-cell.level-4 { opacity: 0.96; }
+
+/* ---------------- stat rail ---------------- */
+
+.stat-rail { display: flex; flex-wrap: wrap; gap: 28px; padding: 16px 20px; }
+.stat { display: grid; gap: 3px; }
+.stat-n { font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1; }
+
+/* ---------------- token chart ---------------- */
+
+.tok-panel { padding: 12px 14px; }
+.tok-chart { width: 100%; height: auto; display: block; }
+.tok-axis { font-size: 9.5px; }
+
+/* ---------------- spend by group ---------------- */
+
+.spend { padding: 6px 4px; display: grid; }
+.spend-row { display: grid; grid-template-columns: 9ch minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 16px; }
+.spend-row + .spend-row { border-top: 1px solid var(--line); }
+.spend-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spend-bar-track { height: 8px; background: var(--surface-2); border-radius: var(--r-sm); overflow: hidden; }
+.spend-bar { height: 100%; background: var(--wire); border-radius: var(--r-sm); }
+.spend-val { font-size: 11.5px; white-space: nowrap; }
+
+/* ---------------- token composition ---------------- */
+
+.comp { padding: 16px 18px; display: grid; gap: 12px; }
+.comp-bar { height: 20px; border-radius: var(--r-sm); overflow: hidden; display: flex; background: var(--surface-2); }
+.comp-seg { height: 100%; }
+.comp-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: var(--ink-2); }
+.comp-legend-item { display: flex; align-items: center; gap: 6px; }
+.comp-swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.comp-note { font-size: 11px; color: var(--ink-3); max-width: 76ch; }
+
+/* ---------------- widget catalogue ---------------- */
+
+.catalogue { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.cat-card { padding: 14px; display: grid; gap: 8px; align-content: start; }
+.cat-name { font-family: var(--f-ui); font-size: 12.5px; font-weight: 600; }
+.cat-desc { font-size: 11.5px; color: var(--ink-2); line-height: 1.4; }
+.cat-add { justify-self: start; }
+.cat-add:disabled { opacity: 0.45; cursor: not-allowed; }
