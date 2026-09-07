@@ -54,7 +54,8 @@ class Run extends EventEmitter {
   setState(next, detail = {}) {
     if (this.state === next) return;
     this.state = next;
-    this.emit("state", { id: this.id, state: next, ...detail });
+    // Every emitted event keys the run the same way: runId.
+    this.emit("state", { runId: this.id, state: next, ...detail });
     audit("run.state", { run: this.id, state: next, ...detail });
   }
 
@@ -124,6 +125,7 @@ class Run extends EventEmitter {
       this.turns += 1;
       if (!ev.ok) this.error = ev.text || "runtime reported an error";
       this.emit("turn", { runId: this.id, turn: this.turns, ok: ev.ok, text: this.text });
+    this.emit("state", { runId: this.id, state: this.state, turn: this.turns });
       // A finished turn is not a finished run when input is streamed.
       if (this.streamsInput && !TERMINAL.has(this.state)) this.setState("awaiting_input");
     }
@@ -197,12 +199,19 @@ export class RunManager extends EventEmitter {
     const run = new Run({ id, runtimeId, cwd, opts: { sessionId: crypto.randomUUID(), ...opts } });
     run.on("event", (e) => this.emit("event", e));
     run.on("state", (e) => this.emit("state", e));
-    run.on("done", (r) => this.emit("done", r.summary()));
+    run.on("done", (r) => this.emit("done", { runId: r.id, ...r.summary() }));
     this.runs.set(id, run);
     return run;
   }
 
   get(id) { return this.runs.get(id) ?? null; }
+
+  /** Throws on an unknown id so a caller cannot mistake a no-op for success. */
+  require(id) {
+    const r = this.runs.get(id);
+    if (!r) throw new Error(`no such run "${id}"`);
+    return r;
+  }
   list() { return [...this.runs.values()].map((r) => r.summary()); }
 
   interruptAll() {

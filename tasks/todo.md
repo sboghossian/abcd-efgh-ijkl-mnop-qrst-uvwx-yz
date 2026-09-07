@@ -41,15 +41,19 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [ ] Verified-socket-version list needs a real maintenance story; the running
       CLI (2.1.263) already outran the hardcoded array
 
-## Phase 2 — the run engine
+## Phase 2 — the run engine (SHIPPED)
 
-- [ ] `RuntimeAdapter` interface — must carry `parseTranscript` and `deriveStatus`,
-      not just spawn/stream, because decision 22 requires full Codex parity and
-      Codex has no session registry to read liveness from
-- [ ] Claude Code as first adapter implementation
+- [x] `RuntimeAdapter` carrying parseTranscript + deriveStatus (decision 22)
+- [x] Claude Code adapter — verified against the live CLI, not the docs
+- [x] Tier 1 spawn + stream + bidirectional stdin + interrupt + end
+- [x] Permission gate, fail-closed, snapshot + sha256-verified revert
+- [x] One gated `POST /api/action` + SSE `/api/events`
+- [x] Runs surface: gates first, live output, measured-vs-estimated cost
+- [ ] Resume and fork wired to the UI (the adapter supports both already)
 - [ ] Codex adapter: own transcript parser + status derivation
-- [ ] Tier 1 spawn + stream + interrupt + resume + fork
-- [ ] Permission gate with pre-action snapshot and sha256-verified revert
+- [ ] Decide whether abcd-owned runs opt out of user hooks via `--setting-sources`
+      (today `--settings` merges, so every user hook runs inside every spawn —
+      correct, but it made a trivial run take 35s)
 
 ## Phase 3 — reach and the day
 

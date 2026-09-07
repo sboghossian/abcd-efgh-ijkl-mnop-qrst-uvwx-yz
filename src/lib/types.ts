@@ -241,7 +241,8 @@ export type SurfaceId =
   | "system"
   | "dashboard"
   | "settings"
-  | "docs";
+  | "docs"
+  | "runs";
 
 export interface AppState {
   user: { name: string };

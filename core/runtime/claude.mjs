@@ -72,8 +72,11 @@ export const claudeAdapter = registerRuntime({
       return out.length === 1 ? out[0] : { kind: "batch", events: out, usage: j.message.usage ?? null };
     }
     if (t === "user" && j.message) {
-      const has = (j.message.content ?? []).some((c) => c.type === "tool_result");
-      if (has) return { kind: EVENT.TOOL_RESULT };
+      const tr = (j.message.content ?? []).find((c) => c.type === "tool_result");
+      if (tr) {
+        // Carry the id so the UI can mark the matching tool call complete.
+        return { kind: EVENT.TOOL_RESULT, toolUseId: tr.tool_use_id ?? null, ok: tr.is_error !== true };
+      }
     }
     if (t === "result") {
       return { kind: EVENT.RESULT, ok: !j.is_error, sessionId: j.session_id,

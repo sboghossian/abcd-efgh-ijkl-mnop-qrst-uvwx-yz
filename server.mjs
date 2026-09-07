@@ -32,9 +32,9 @@ const ACTIONS = {
     run.start();
     return run.summary();
   },
-  "run.send": ({ id, text }) => ({ sent: manager.get(id)?.send(text) ?? false }),
-  "run.interrupt": ({ id }) => ({ interrupted: manager.get(id)?.interrupt() ?? false }),
-  "run.end": ({ id }) => ({ ended: manager.get(id)?.end() ?? false }),
+  "run.send": ({ id, text }) => ({ sent: manager.require(id).send(text) }),
+  "run.interrupt": ({ id }) => ({ interrupted: manager.require(id).interrupt() }),
+  "run.end": ({ id }) => ({ ended: manager.require(id).end() }),
   "run.interruptAll": () => ({ interrupted: manager.interruptAll() }),
   "gate.decide": ({ id, decision, reason }) => gate.decide(id, decision, reason),
   "gate.revert": ({ snapshot, expectCurrentSha }) => gate.revertFile(snapshot, { expectCurrentSha }),
@@ -119,7 +119,17 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { entries: readAudit(100) });
       }
       case "/api/runs": {
-        return json(res, 200, { runs: manager.list(), active: manager.active,
+        // A run blocked on a gate reports needs_approval, so the lifecycle the
+        // manager documents is the lifecycle the UI actually sees.
+        const pending = gate.listPending();
+        const bySession = new Map(pending.map((p) => [p.sessionId, p]));
+        const runs = manager.list().map((r) => {
+          const g = r.sessionId ? bySession.get(r.sessionId) : null;
+          return g && !["done", "failed", "interrupted"].includes(r.state)
+            ? { ...r, state: "needs_approval", pendingGate: { id: g.id, tool: g.tool, summary: g.summary, at: g.at, waitMs: g.waitMs } }
+            : r;
+        });
+        return json(res, 200, { runs, active: manager.active,
           runtimes: listRuntimes().map((r) => ({ id: r.id, label: r.label, capabilities: r.capabilities })) });
       }
       case "/api/gates": {
