@@ -1,13 +1,27 @@
 # abcd
 
+![abcd](media/hero.png)
+
 **Build your own AI harness.**
 
-`abcd-efgh-ijkl-mnop-qrst-uvwx-yz` — an open-source desktop app for running many Claude Code sessions at
-once, and for owning the system underneath them: memory layers, skills, connectors, architecture, and the
-brain they all read from.
+`abcd-efgh-ijkl-mnop-qrst-uvwx-yz` — an open-source desktop app for running many
+Claude Code sessions at once, and for owning the system underneath them: memory
+layers, skills, connectors, architecture, and the brain they all read from.
 
-> **Status: pre-alpha.** The clickable front end runs on synthetic data. The run engine is not built yet.
-> Nothing here talks to a real agent. See [Roadmap](#roadmap).
+> **Status: pre-alpha.** Phases 0–6 are built. The run engine spawns and streams
+> real sessions and the permission gate is enforced, but the app is young and the
+> desktop build is unsigned. See [Roadmap](#roadmap).
+
+---
+
+![Groups](media/groups-dark.png)
+
+**Columns are groups. Every tab is a session.** A group binds to a primary
+filesystem root, but assignment is content-first, because on a real machine most
+sessions start from `$HOME` and the working directory tells you nothing. Each
+session shows its model, its reachability tier, its tokens and its cost —
+labelled **measured** when the runtime reported it and **est.** when abcd
+derived it, because those are not the same thing.
 
 ---
 
@@ -27,17 +41,22 @@ abcd is a different shape. In those tools the unit is a **task**. In abcd the un
 
 A session is one tab inside that. Not the whole product.
 
+![Dashboard](media/dashboard-dark.png)
+
 ## What works today
 
 | | |
 |---|---|
-| Clickable front end, all 12 surfaces | ✅ synthetic data only |
-| Groups, columns, session tabs, drag between columns | ✅ |
-| Global prompt box, `@` targeting, broadcast | ✅ UI only |
-| Board, Brain, System canvas, Dashboard, Settings, Docs | ✅ synthetic data only |
-| Reading your real sessions | ❌ Phase 1 |
-| Spawning and streaming a real agent | ❌ Phase 2 |
-| Reaching sessions started elsewhere | ❌ Phase 3 |
+| Ten surfaces, both themes | ✅ |
+| Reading your real sessions, settings, skills, hooks and vault | ✅ |
+| History index that outlives Claude Code's own retention | ✅ |
+| Spawning, streaming, interrupting, resuming and forking sessions | ✅ |
+| Permission gate — fails closed, snapshots, reverts by sha256 | ✅ |
+| Codex as a second runtime (history; spawn when installed) | ✅ |
+| Writing your `settings.json` — allowlisted, snapshotted, revertible | ✅ |
+| Desktop app (macOS DMG) | ✅ unsigned |
+| Writing into sessions abcd did not start | ❌ [not possible](#what-abcd-cannot-do) |
+| Linux and Windows | ❌ abstracted, unverified |
 
 ## Run it
 
@@ -111,6 +130,18 @@ Worth knowing before you look at the numbers: cost is **estimated** from a publi
 price table applied to observed tokens. On a subscription there is no per-token
 bill, so the figure is derived, never billed. Cache reads typically dominate the
 token count and that is normal.
+
+![System architecture](media/system.png)
+
+The **system architecture** canvas is your own harness read off disk: memory
+layers, skills, agents, hooks, connectors, routines, runtimes — with the edges
+that actually connect them.
+
+![Brain](media/brain.png)
+
+The **brain** answers "which part of my notes is this session drawing on",
+rather than making you open a second app. Backlinks are read from the
+pre-computed footers your vault already has; nothing is recomputed.
 
 ## Desktop app
 
@@ -202,25 +233,47 @@ Local-first, and that is the whole design, not a setting.
 - Dictation runs on local `whisper.cpp`. Audio never leaves the machine.
 - Telemetry is off, and there is nothing to turn on yet.
 
+## What abcd cannot do
+
+Worth stating plainly, because the gap looks like a missing feature and is not one.
+
+abcd fully controls sessions it starts. It **discovers** sessions started
+elsewhere, names them, and tells you why each is or is not reachable. It cannot
+**write into** one.
+
+That is a property of the platform, not a gap in this build. Every supported
+interface was checked:
+
+| Interface | Why it does not work |
+|---|---|
+| `SendMessage` / `ListAgents` | Internal to an agent's own tool loop. No external API. |
+| Peer inbox socket | The transport is documented; the message schema is not, and it is built for a session's own child processes. |
+| Channels | Must be opted in **at launch** with `--channels`, from an allowlist. Cannot be retrofitted into a running session. |
+
+So abcd reports reach honestly and routes real work through runs it owns. A tool
+that claimed otherwise would be guessing a wire format and writing it into your
+live work.
+
 ## Roadmap
 
 | Phase | | |
 |---|---|---|
 | 0 | Clickable front end on synthetic data | ✅ |
-| 1 | Read-only truth — real sessions, transcripts, settings, and the history index | |
-| 2 | The run engine — spawn, stream, interrupt, resume, fork, permission gates | |
-| 3 | Reach and the day — tier 2, broadcast, wind-down | |
-| 4 | Harness surfaces — brain, architecture canvas, dashboard, settings | |
-| 5 | Open source — signed macOS build, onboarding sandbox | |
-| 6 | Linux, then Windows | |
+| 1 | Read-only truth — real sessions, transcripts, settings, history index | ✅ |
+| 2 | The run engine — spawn, stream, interrupt, resume, fork, permission gates | ✅ |
+| 3 | Reach and the day — tiers, broadcast, wind-down, Codex adapter | ✅ |
+| 4 | Harness surfaces on real data, and guarded settings writes | ✅ |
+| 5 | Packaging — Electron shell, core as a sidecar, macOS DMG | ✅ unsigned |
+| 6 | Linux, then Windows | abstracted, unverified |
 
-Phase 1 ships the history index before anything else, because Claude Code retains roughly 2.5 weeks of
-transcripts. History is the one thing that cannot be backfilled — every day the index does not exist is a
-day permanently missing.
+Phase 1 shipped the history index before anything else, because Claude Code
+retains roughly two and a half weeks of transcripts. History is the one thing
+that cannot be backfilled — every day the index does not exist is a day
+permanently missing.
 
-Phase 2 is the whole product. Every prior attempt at this idea visualised state that already existed on
-disk. Running a live agent is the part that has never been finished, and nothing after it starts until it
-works.
+Phase 2 was the whole product. Every prior attempt at this idea visualised state
+that already existed on disk. Running a live agent is the part that had never
+been finished.
 
 ## Contributing
 
