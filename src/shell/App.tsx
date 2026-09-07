@@ -3,7 +3,7 @@ import { useStore, hasLive, liveMeta } from "../lib/store";
 import type { SurfaceId } from "../lib/types";
 import {
   IconHome, IconColumns, IconBoard, IconBrain, IconSystem, IconChart,
-  IconGear, IconBook, IconPlus, IconPower, IconMoon,
+  IconGear, IconBook, IconPlus, IconPower, IconMoon, IconSend,
 } from "./icons";
 import { PromptBox } from "./PromptBox";
 import { Toasts } from "./Toasts";
@@ -18,6 +18,7 @@ import { Dashboard } from "../surfaces/Dashboard";
 import { Settings } from "../surfaces/Settings";
 import { Docs } from "../surfaces/Docs";
 import { Runs } from "../surfaces/Runs";
+import { Day } from "../surfaces/Day";
 
 const NAV: { id: SurfaceId; label: string; icon: () => JSX.Element; key: string }[] = [
   { id: "home", label: "Home", icon: IconHome, key: "1" },
@@ -29,12 +30,13 @@ const NAV: { id: SurfaceId; label: string; icon: () => JSX.Element; key: string 
   { id: "settings", label: "Settings", icon: IconGear, key: "7" },
   { id: "docs", label: "Docs", icon: IconBook, key: "8" },
   { id: "runs", label: "Runs", icon: IconPower, key: "9" },
+  { id: "day", label: "Day", icon: IconSend, key: "0" },
 ];
 
 const TITLES: Record<SurfaceId, string> = {
   home: "Home", groups: "Groups", kanban: "Board", brain: "Brain",
   system: "System architecture", dashboard: "Dashboard", settings: "Settings", docs: "Documentation",
-  runs: "Runs",
+  runs: "Runs", day: "Day",
 };
 
 function Rail() {
@@ -131,7 +133,7 @@ export function App() {
         if (ui.focusMode) dispatch({ type: "focus", on: false });
         return;
       }
-      if (meta && /^[1-9]$/.test(e.key)) {
+      if (meta && /^[0-9]$/.test(e.key)) {
         const hit = NAV.find((n) => n.key === e.key);
         if (hit) { e.preventDefault(); dispatch({ type: "surface", id: hit.id }); }
       }
@@ -155,6 +157,7 @@ export function App() {
           {ui.surface === "settings" && <Settings />}
           {ui.surface === "docs" && <Docs />}
           {ui.surface === "runs" && <Runs />}
+          {ui.surface === "day" && <Day />}
         </div>
         <PromptBox />
       </div>

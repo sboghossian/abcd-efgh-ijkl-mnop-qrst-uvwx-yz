@@ -85,14 +85,14 @@ export async function broadcast(text, { only = null } = {}) {
   return { text, delivered, unreachable: results.length - delivered, results };
 }
 
-export async function windDown(text = WIND_DOWN_DEFAULT) {
-  const res = await broadcast(text);
+export async function windDown(text = WIND_DOWN_DEFAULT, { only = null } = {}) {
+  const res = await broadcast(text, { only });
   recordWindDown({ kind: "wind-down", delivered: res.delivered, unreachable: res.unreachable });
   return res;
 }
 
-export async function resumeAll(text = RESUME_DEFAULT) {
-  const res = await broadcast(text);
+export async function resumeAll(text = RESUME_DEFAULT, { only = null } = {}) {
+  const res = await broadcast(text, { only });
   recordWindDown({ kind: "resume", delivered: res.delivered, unreachable: res.unreachable });
   return res;
 }

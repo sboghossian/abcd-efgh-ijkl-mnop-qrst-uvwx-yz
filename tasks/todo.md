@@ -50,6 +50,8 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] One gated `POST /api/action` + SSE `/api/events`
 - [x] Runs surface: gates first, live output, measured-vs-estimated cost
 - [ ] Resume and fork wired to the UI (the adapter supports both already)
+- [ ] Nav is full at 10 surfaces; the next one needs a different affordance
+      than a number key
 - [x] Codex adapter — built against real transcripts on disk, not documentation.
       Capabilities are DISCOVERED (PATH walk, no shell), so with the binary
       absent it declares "history only" rather than pretending it can spawn.
@@ -66,7 +68,9 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] Broadcast with per-target outcomes; nothing is ever silently dropped
 - [x] Wind-down + resume, cooperative by design
 - [x] `/api/day`, `/api/targets`, and the day/broadcast actions
-- [ ] UI for the day loop and broadcast targets
+- [x] Day surface: objective, facts-from-index, reconciliation, recent strip,
+      reach grouped by tier with reasons verbatim, broadcast with per-target
+      outcomes
 - [ ] **Tier-2 write: use channels, not the peer socket.** The socket transport
       IS documented (`CLAUDE_CODE_MESSAGING_SOCKET`, `CLAUDE_CODE_MESSAGING_TOKEN`,
       `{"type":"auth","token":"..."}` first line) but only for a script posting

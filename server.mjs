@@ -44,8 +44,8 @@ const ACTIONS = {
   "day.objective": ({ objective }) => day.setObjective(objective ?? ""),
   "day.close": ({ note }) => day.closeDay(undefined, note ?? ""),
   "broadcast.send": ({ text, only }) => broadcast.broadcast(text, { only: only ?? null }),
-  "broadcast.windDown": ({ text }) => broadcast.windDown(text || undefined),
-  "broadcast.resume": ({ text }) => broadcast.resumeAll(text || undefined),
+  "broadcast.windDown": ({ text, only }) => broadcast.windDown(text || undefined, { only: only ?? null }),
+  "broadcast.resume": ({ text, only }) => broadcast.resumeAll(text || undefined, { only: only ?? null }),
   "gate.revert": ({ snapshot, expectCurrentSha }) => gate.revertFile(snapshot, { expectCurrentSha }),
 };
 
