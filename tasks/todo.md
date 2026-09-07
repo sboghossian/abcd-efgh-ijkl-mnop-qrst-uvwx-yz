@@ -24,7 +24,7 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] Live snapshot generator (`npm run snapshot`) + LIVE/DEMO toggle
 - [x] Public GitHub repo, AGPL-3.0, clean single-commit history
 - [x] Grouping corrected: root wins inside a repo, content decides elsewhere (decision 20)
-- [ ] Screenshots for README from DEMO=1
+- [x] README hero + 5 DEMO screenshots
 
 ## Phase 1 — read-only truth (SHIPPED)
 
@@ -38,8 +38,8 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] UI reads core when up; falls back snapshot → demo
 - [x] Test suite — 63 tests, `npm test`
 - [ ] Watcher for push updates instead of 15s polling
-- [ ] Verified-socket-version list needs a real maintenance story; the running
-      CLI (2.1.263) already outran the hardcoded array
+- [x] SOLVED in Phase 3: gating moved to `peerProtocol`, which the registry
+      advertises, so the list maintains itself
 
 ## Phase 2 — the run engine (SHIPPED)
 
