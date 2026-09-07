@@ -26,13 +26,18 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] Grouping corrected: root wins inside a repo, content decides elsewhere (decision 20)
 - [ ] Screenshots for README from DEMO=1
 
-## Phase 1 — read-only truth
+## Phase 1 — read-only truth (SHIPPED)
 
-- [ ] Port Cockpit data layer into `packages/core` (plain Node, zero Electron imports, lint-enforced)
-- [ ] Session registry poller — `~/.claude/sessions/<pid>.json`
-- [ ] Transcript parser — `*.jsonl`, `parentUuid` tree
-- [ ] SQLite history index — ships first; history cannot be backfilled
-- [ ] Settings / skills / agents / hooks readers
+- [x] `core/` — pure Node, zero Electron imports
+- [x] Session registry reader + tier derivation with version gating
+- [x] Transcript parser — byte-capped, keeps `parentUuid` for Phase 2 replay
+- [x] History index (`node:sqlite`, no native dep) — idempotent, index/vault sourced
+- [x] Settings / skills / agents / hooks / MCP / plugins readers
+- [x] Vault reader — bounded sampling, pre-computed backlinks
+- [x] `server.mjs` — 127.0.0.1, GET-only, $HOME jail, audit log
+- [x] UI reads core when up; falls back snapshot → demo
+- [ ] Test suite (in progress)
+- [ ] Watcher for push updates instead of 15s polling
 
 ## Phase 2 — the run engine
 

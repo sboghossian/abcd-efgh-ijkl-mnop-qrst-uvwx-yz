@@ -57,6 +57,33 @@ an empty window and never contains anyone's real information.
 
 ## Running it on your own setup
 
+Two ways, depending on how live you want it.
+
+**Live (Phase 1).** Run the core server alongside the UI and abcd reads your real
+sessions continuously, refreshing every 15 seconds:
+
+```bash
+npm run core     # http://127.0.0.1:4499  — read-only, localhost only
+npm run dev      # http://localhost:4488  — a CORE / SNAPSHOT / DEMO toggle appears
+```
+
+The server binds `127.0.0.1` only, answers `GET` only, validates every path it
+reads as being under `$HOME`, and appends every request to `~/.abcd/audit.log`.
+There is no action endpoint in this phase; a `POST` is refused with a 405.
+
+It also maintains **the history index** at `~/.abcd/index.db` (via `node:sqlite`,
+so no native dependency and nothing to compile). Claude Code retains roughly two
+and a half weeks of transcripts and prunes the rest, so a month, quarter or year
+cannot be built from its data. The index starts filling the first time you run
+the server, and it is the one thing that cannot be backfilled: every day it does
+not exist is a day permanently missing. If you point abcd at an Obsidian vault
+holding a session archive, older days are recovered from it once and marked as
+vault-sourced so they are never confused with days abcd observed itself.
+
+**Snapshot (no server).** A one-shot fixture instead:
+
+
+
 The app boots on synthetic data. To click through your *real* sessions instead:
 
 ```bash

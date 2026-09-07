@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
 import type { AppState, GroupToast, Session, SurfaceId, SettingsState } from "./types";
 import { demoState } from "../fixtures/demo";
 
@@ -16,9 +16,32 @@ export const liveState: AppState | null = liveEntry?.liveState ?? null;
 export const liveMeta: Record<string, number> | null = liveEntry?.liveMeta ?? null;
 export const hasLive = liveState !== null;
 
+/**
+ * The core server (Phase 1) serves the same AppState shape over localhost.
+ * When it is running the app shows real, live data; when it is not, the app
+ * falls back to the local snapshot and then to synthetic fixtures. Three
+ * sources, one renderer.
+ */
+export const CORE_URL = "http://127.0.0.1:4499";
+
+export interface CoreMeta {
+  builtAt: string; ms: number; transcriptsOnDisk: number; sessionsRead: number;
+  liveProcesses: number; vault: string | null;
+  index: { days: number; daysFromIndex: number; daysFromVault: number; sessions: number; oldestDay: string | null };
+}
+
+export async function fetchCore(signal?: AbortSignal): Promise<{ state: AppState; meta: CoreMeta } | null> {
+  try {
+    const r = await fetch(`${CORE_URL}/api/state`, { signal });
+    if (!r.ok) return null;
+    return (await r.json()) as { state: AppState; meta: CoreMeta };
+  } catch { return null; }
+}
+
 /** UI state. Distinct from AppState, which the real app will source from core. */
 export interface UiState {
-  source: "demo" | "live";
+  source: DataSource;
+  coreMeta: CoreMeta | null;
   surface: SurfaceId;
   activeGroupId: string;
   /** Active session per column. */
@@ -47,6 +70,7 @@ export interface Store {
 }
 
 export type Action =
+  | { type: "loadCore"; state: AppState; meta: CoreMeta }
   | { type: "surface"; id: SurfaceId }
   | { type: "group"; id: string }
   | { type: "activate"; columnId: string; sessionId: string }
@@ -77,7 +101,9 @@ export type Action =
   | { type: "toggleTask"; taskId: string }
   | { type: "windDownAll" }
   | { type: "resumeAll" }
-  | { type: "source"; source: "demo" | "live" };
+  | { type: "source"; source: DataSource };
+
+export type DataSource = "demo" | "live" | "core";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -199,9 +225,14 @@ function reduce(state: { app: AppState; ui: UiState }, a: Action): { app: AppSta
       const sessions = app.sessions.map((s) => (s.status === "idle" && s.tier !== 3 ? { ...s, status: "working" as const } : s));
       return { app: { ...app, sessions }, ui };
     }
+    case "loadCore":
+      // The core server is authoritative when it is up.
+      return { app: a.state, ui: { ...initialUiFor(a.state), source: "core", coreMeta: a.meta, surface: ui.surface } };
     case "source": {
+      if (a.source === "core" && ui.coreMeta) return state;
       const next = a.source === "live" && liveState ? liveState : demoState;
-      return { app: next, ui: { ...initialUiFor(next), source: a.source === "live" && liveState ? "live" : "demo", surface: ui.surface } };
+      const src: DataSource = a.source === "live" && liveState ? "live" : "demo";
+      return { app: next, ui: { ...initialUiFor(next), source: src, coreMeta: ui.coreMeta, surface: ui.surface } };
     }
     default:
       return state;
@@ -217,6 +248,7 @@ function initialUiFor(state: AppState): UiState {
     state.sessions[0];
   return {
     source: state.demo ? "demo" : "live",
+    coreMeta: null,
     surface: "home",
     activeGroupId: first?.groupId ?? state.groups[0]?.id ?? "",
     activeByColumn,
@@ -245,6 +277,19 @@ const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reduce, { app: bootState, ui: initialUiFor(bootState) });
+
+  // Prefer the core server when it is running; otherwise stay on the snapshot.
+  useEffect(() => {
+    const ac = new AbortController();
+    let stopped = false;
+    const poll = async () => {
+      const res = await fetchCore(ac.signal);
+      if (!stopped && res) dispatch({ type: "loadCore", state: res.state, meta: res.meta });
+    };
+    poll();
+    const t = window.setInterval(poll, 15_000);
+    return () => { stopped = true; ac.abort(); window.clearInterval(t); };
+  }, []);
   const value = useMemo(() => ({ app: state.app, ui: state.ui, dispatch }), [state]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

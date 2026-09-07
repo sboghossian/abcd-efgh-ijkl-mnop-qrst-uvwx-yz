@@ -85,15 +85,24 @@ function TopBar() {
         </button>
       </div>
       <div className="topbar-r mono">
-        {hasLive ? (
-          <div className="srctog" role="group" aria-label="Data source">
+        <div className="srctog" role="group" aria-label="Data source">
+          {ui.coreMeta && (
+            <button className={ui.source === "core" ? "on" : ""} onClick={() => dispatch({ type: "source", source: "core" })}
+              title={`Live from the core server · ${ui.coreMeta.sessionsRead} of ${ui.coreMeta.transcriptsOnDisk} transcripts · ${ui.coreMeta.liveProcesses} running now`}>
+              Core
+            </button>
+          )}
+          {hasLive && (
             <button className={ui.source === "live" ? "on" : ""} onClick={() => dispatch({ type: "source", source: "live" })}
-              title={liveMeta ? `${liveMeta.sessionsRead} real sessions read from ~/.claude` : "Your real setup"}>Live</button>
-            <button className={ui.source === "demo" ? "on" : ""} onClick={() => dispatch({ type: "source", source: "demo" })}
-              title="Synthetic data — what the public repo ships">Demo</button>
-          </div>
-        ) : (
-          <span className="demo-badge">DEMO DATA</span>
+              title={liveMeta ? `Snapshot · ${liveMeta.sessionsRead} sessions` : "Local snapshot"}>Snapshot</button>
+          )}
+          <button className={ui.source === "demo" ? "on" : ""} onClick={() => dispatch({ type: "source", source: "demo" })}
+            title="Synthetic data — what the public repo ships">Demo</button>
+        </div>
+        {ui.coreMeta && (
+          <span className="idxpill" title={`Index holds ${ui.coreMeta.index.days} days: ${ui.coreMeta.index.daysFromIndex} observed by abcd, ${ui.coreMeta.index.daysFromVault} recovered from the vault. Oldest ${ui.coreMeta.index.oldestDay ?? "n/a"}.`}>
+            {ui.coreMeta.index.days}d indexed
+          </span>
         )}
         <span className="stat"><span className="dot s-working" /> {live} working</span>
         <span className="stat"><span className="dot s-needs-input" /> {blocked} blocked</span>

@@ -165,3 +165,10 @@
 }
 .srctog button:hover { color: var(--ink); }
 .srctog button.on { background: var(--wire); color: var(--wire-ink); }
+
+/* index depth: history is a first-class fact, not a footnote */
+.idxpill {
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: 0.07em;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 3px 7px; color: var(--ink-3); background: var(--surface-2); white-space: nowrap; cursor: help;
+}

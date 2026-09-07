@@ -10,7 +10,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --port 4488",
     "typecheck": "tsc -b --noEmit",
-    "snapshot": "node scripts/snapshot.mjs"
+    "snapshot": "node scripts/snapshot.mjs",
+    "core": "node server.mjs",
+    "dev:all": "node server.mjs & vite"
   },
   "dependencies": {
     "react": "18.3.1",
