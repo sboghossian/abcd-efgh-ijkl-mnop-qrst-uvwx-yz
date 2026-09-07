@@ -50,7 +50,9 @@ Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, 
 - [x] One gated `POST /api/action` + SSE `/api/events`
 - [x] Runs surface: gates first, live output, measured-vs-estimated cost
 - [ ] Resume and fork wired to the UI (the adapter supports both already)
-- [ ] Codex adapter: own transcript parser + status derivation
+- [x] Codex adapter — built against real transcripts on disk, not documentation.
+      Capabilities are DISCOVERED (PATH walk, no shell), so with the binary
+      absent it declares "history only" rather than pretending it can spawn.
 - [ ] Decide whether abcd-owned runs opt out of user hooks via `--setting-sources`
       (today `--settings` merges, so every user hook runs inside every spawn —
       correct, but it made a trivial run take 35s)

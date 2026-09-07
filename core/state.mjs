@@ -12,22 +12,49 @@ import { readRecent, titleFor } from "./transcript.mjs";
 import { readNotes, readArchiveDates } from "./vault.mjs";
 import { readSystem } from "./system.mjs";
 import { groupFor, estimateCost, deriveStatus, loadRules } from "./grouping.mjs";
+import { codexAdapter, listCodexTranscripts, codexTitles, codexTitle, codexEnv } from "./runtime/codex.mjs";
 import { upsertSession, upsertTurns, upsertFiles, recordDay, usageSince, indexStats, openIndex } from "./history.mjs";
 import os from "node:os";
 
 const signalOf = (a) => [a.firstPrompt, a.title, a.aiTitle, [...(a.tickets || [])].join(" "),
   (a.files || []).slice(0, 30).map((f) => f.path).join(" "), a.gitBranch].filter(Boolean).join(" ");
 
+/** Codex history, newest first. Empty when Codex was never used here. */
+async function readCodex(limit) {
+  if (!codexEnv.history) return [];
+  const files = await listCodexTranscripts();
+  if (!files.length) return [];
+  const titles = await codexTitles();
+  const out = [];
+  for (const f of files.slice(0, limit)) {
+    try {
+      const a = await codexAdapter.parseTranscript(f.full, f.id);
+      a.runtimeId = "codex";
+      a.title = codexTitle(a, titles);
+      a.mtime = f.mtime;
+      a.projectCwd = a.cwd;
+      out.push(a);
+    } catch { /* skip a transcript that will not parse */ }
+  }
+  return out;
+}
+
 export async function buildState({ maxSessions = 48, maxTurns = 14, maxNotes = 300, ingest = true } = {}) {
   const t0 = Date.now();
   openIndex();
 
-  const [live, { accs, allFiles }, sys, vault] = await Promise.all([
+  const [live, { accs, allFiles }, sys, vault, codex] = await Promise.all([
     readRegistry(),
     readRecent(maxSessions),
     readSystem(),
     readNotes({ max: maxNotes }),
+    readCodex(Math.max(6, Math.floor(maxSessions / 4))),
   ]);
+
+  // Both runtimes go through the same pipeline from here. Codex has no live
+  // registry, so its sessions are always history — the UI shows that rather
+  // than implying abcd can reach them.
+  for (const c of codex) accs.push(c);
 
   const rules = loadRules();
 
@@ -59,16 +86,21 @@ export async function buildState({ maxSessions = 48, maxTurns = 14, maxNotes = 3
     const cwd = a.cwd || a.projectCwd || HOME;
     const gname = groupFor(signalOf(a), cwd, rules);
     const gid = groups.find((g) => g.name === gname)?.id || groups[0]?.id || "g-ad-hoc";
-    const lv = live.get(a.id) || null;
-    const status = deriveStatus(a, lv);
-    const title = titleFor(a);
+    const isCodex = a.runtimeId === "codex";
+    // Codex publishes no registry, so it can never be live. Saying otherwise
+    // would be a guess dressed as a fact.
+    const lv = isCodex ? null : (live.get(a.id) || null);
+    const status = isCodex ? codexAdapter.deriveStatus(a, null) : deriveStatus(a, lv);
+    const title = isCodex ? a.title : titleFor(a);
     const n = colSeen.get(gid) || 0; colSeen.set(gid, n + 1);
     const columnId = `${gid}-col${n % 2}`;
     const cost = estimateCost(a.model, a.tokens);
 
     const session = {
       id: a.id, shortId: a.id.slice(0, 8), title, groupId: gid,
-      runtime: "claude", model: a.model || "unknown", status, tier: tierFor(lv),
+      runtime: isCodex ? "codex" : "claude",
+      model: a.model || (isCodex ? "codex" : "unknown"),
+      status, tier: isCodex ? 3 : tierFor(lv),
       cwd: tilde(cwd), gitBranch: a.gitBranch || null,
       startedAt: a.firstAt || new Date(a.mtime).toISOString(),
       lastActivityAt: a.lastAt || new Date(a.mtime).toISOString(),

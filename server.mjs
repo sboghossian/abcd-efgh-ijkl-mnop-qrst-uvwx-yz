@@ -18,6 +18,7 @@ import { buildState } from "./core/state.mjs";
 import { indexStats } from "./core/history.mjs";
 import { audit, readAudit } from "./core/audit.mjs";
 import "./core/runtime/claude.mjs";
+import "./core/runtime/codex.mjs";
 import { manager } from "./core/runtime/manager.mjs";
 import { listRuntimes } from "./core/runtime/adapter.mjs";
 import * as gate from "./core/runtime/gate.mjs";

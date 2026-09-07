@@ -783,3 +783,74 @@ after(() => {
   History.closeIndex();
   fs.rmSync(TMP_HOME, { recursive: true, force: true });
 });
+
+// ---------------------------------------------------------------------------
+// core/runtime/codex.mjs — decision 22 requires an adapter to parse its own
+// transcript and derive its own status, because Codex has no live registry.
+// ---------------------------------------------------------------------------
+
+describe("codex.mjs — the second runtime", () => {
+  let Codex, Adapter;
+
+  before(async () => {
+    Codex = await import("../core/runtime/codex.mjs");
+    Adapter = Codex.codexAdapter;
+  });
+
+  test("declares capabilities honestly: no registry, no gates, no harness, no reported cost", () => {
+    assert.equal(Adapter.capabilities.registry, false);
+    assert.equal(Adapter.capabilities.gates, false);
+    assert.equal(Adapter.capabilities.harness, false);
+    assert.equal(Adapter.capabilities.reportedCost, false);
+  });
+
+  test("satisfies the RuntimeAdapter contract", () => {
+    for (const m of ["buildSpawn", "parseEvent", "encodeInput", "deriveStatus", "parseTranscript"]) {
+      assert.equal(typeof Adapter[m], "function", `missing ${m}()`);
+    }
+  });
+
+  test("parses a real-shaped rollout: meta, both message forms, tools, tokens", async () => {
+    const file = fixturePath("codex-rollout.jsonl");
+    const a = await Adapter.parseTranscript(file, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+    assert.equal(a.cwd, "/tmp/proj");
+    assert.equal(a.version, "0.140.0-alpha.2");
+    assert.equal(a.tokens.input, 100);
+    assert.equal(a.tokens.output, 50);
+    assert.equal(a.tokens.cacheRead, 20);
+    assert.ok(a.turns.length >= 3, "user + agent turns are captured");
+    assert.equal(a.sawResult, true, "task_complete sets sawResult");
+  });
+
+  test("a malformed line is skipped rather than throwing", async () => {
+    const file = fixturePath("codex-rollout.jsonl");
+    const a = await Adapter.parseTranscript(file, "x");
+    assert.ok(a.turns.length > 0);
+  });
+
+  test("parseEvent normalises Codex events onto the shared kinds", () => {
+    const meta = Adapter.parseEvent(JSON.stringify({ type: "session_meta", payload: { id: "s1", cwd: "/tmp" } }));
+    assert.equal(meta.kind, "init");
+    const msg = Adapter.parseEvent(JSON.stringify({ type: "event_msg", payload: { type: "agent_message", message: "hi" } }));
+    assert.equal(msg.kind, "text");
+    const call = Adapter.parseEvent(JSON.stringify({ type: "response_item", payload: { type: "function_call", call_id: "c1", name: "shell" } }));
+    assert.equal(call.kind, "tool_use");
+    assert.equal(Adapter.parseEvent("{not json"), null);
+  });
+
+  test("status never claims 'working': without a registry that would be a guess", () => {
+    assert.equal(Adapter.deriveStatus({ sawFailed: false, sawResult: true, lastRole: "assistant" }), "completed");
+    assert.equal(Adapter.deriveStatus({ sawFailed: true }), "failed");
+  });
+
+  test("title prefers the index name, and strips Codex's own preamble otherwise", () => {
+    const acc = { id: "s1", prompts: ["# AGENTS.md instructions for /tmp", "Cap the retry loop"], cwd: "/tmp/proj" };
+    assert.equal(Codex.codexTitle(acc, new Map([["s1", "Fix student discount"]])), "Fix student discount");
+    assert.equal(Codex.codexTitle(acc, new Map()), "Cap the retry loop");
+  });
+
+  test("buildSpawn refuses when the binary is absent rather than spawning nothing", () => {
+    if (Codex.codexEnv.installed) return; // installed here; nothing to assert
+    assert.throws(() => Adapter.buildSpawn({ cwd: "/tmp", prompt: "x" }), /not installed/i);
+  });
+});

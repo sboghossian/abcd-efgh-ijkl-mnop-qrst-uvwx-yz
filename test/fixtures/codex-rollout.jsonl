@@ -1,0 +1,9 @@
+{"timestamp":"2026-06-12T14:24:27.961Z","type":"session_meta","payload":{"id":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","cwd":"/tmp/proj","originator":"Codex Desktop","cli_version":"0.140.0-alpha.2","source":"vscode","model_provider":"openai"}}
+{"timestamp":"2026-06-12T14:24:28.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"# AGENTS.md instructions for /tmp"}]}}
+{"timestamp":"2026-06-12T14:24:29.000Z","type":"event_msg","payload":{"type":"user_message","message":"Cap the retry loop at five attempts"}}
+not json at all
+{"timestamp":"2026-06-12T14:24:30.000Z","type":"event_msg","payload":{"type":"agent_message","message":"Found the loop, adding a ceiling."}}
+{"timestamp":"2026-06-12T14:24:31.000Z","type":"response_item","payload":{"type":"function_call","call_id":"c1","name":"shell","arguments":"npm test"}}
+{"timestamp":"2026-06-12T14:24:32.000Z","type":"response_item","payload":{"type":"function_call_output","call_id":"c1"}}
+{"timestamp":"2026-06-12T14:24:33.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":100,"cached_input_tokens":20,"output_tokens":50,"reasoning_output_tokens":5,"total_tokens":175}}}}
+{"timestamp":"2026-06-12T14:24:34.000Z","type":"event_msg","payload":{"type":"task_complete"}}
