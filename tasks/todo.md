@@ -1,6 +1,6 @@
 # abcd — build plan
 
-Spec: `docs/SPEC.html` (living PRD). 19 decisions locked 2026-09-07.
+Spec: `docs/SPEC.html` (living PRD, untracked). 23 decisions locked 2026-09-07, none open.
 
 ## Phase 0 — clickable front end (current)
 
@@ -20,8 +20,10 @@ Spec: `docs/SPEC.html` (living PRD). 19 decisions locked 2026-09-07.
 - [x] Docs — 8 topics, in-app, doubles as README source
 - [x] README + AGPL licence
 - [x] Production build green
-- [ ] QA pass across all 12 surfaces, both themes
-- [ ] Public GitHub repo — BLOCKED, needs Stephane's approval
+- [x] QA pass across all 12 surfaces, both themes
+- [x] Live snapshot generator (`npm run snapshot`) + LIVE/DEMO toggle
+- [x] Public GitHub repo, AGPL-3.0, clean single-commit history
+- [x] Grouping corrected: root wins inside a repo, content decides elsewhere (decision 20)
 - [ ] Screenshots for README from DEMO=1
 
 ## Phase 1 — read-only truth
@@ -34,7 +36,11 @@ Spec: `docs/SPEC.html` (living PRD). 19 decisions locked 2026-09-07.
 
 ## Phase 2 — the run engine
 
-- [ ] `RuntimeAdapter` interface; Claude Code as first implementation
+- [ ] `RuntimeAdapter` interface — must carry `parseTranscript` and `deriveStatus`,
+      not just spawn/stream, because decision 22 requires full Codex parity and
+      Codex has no session registry to read liveness from
+- [ ] Claude Code as first adapter implementation
+- [ ] Codex adapter: own transcript parser + status derivation
 - [ ] Tier 1 spawn + stream + interrupt + resume + fork
 - [ ] Permission gate with pre-action snapshot and sha256-verified revert
 
@@ -47,8 +53,13 @@ Spec: `docs/SPEC.html` (living PRD). 19 decisions locked 2026-09-07.
 ## Phase 5 — open source, signed macOS build
 ## Phase 6 — Linux, then Windows
 
-## Open questions (YZ tab of the spec)
+## Open questions
 
-- Q9 worktree per session inside a group root?
-- Q10 how much Codex parity does v1 need?
-- Q11 whisper.cpp distribution — bundle, detect, or download?
+None. Q1-Q11 answered and folded into decisions 12-23.
+
+## Standing constraints
+
+- Scan before publishing, always. Publishing is the irreversible step.
+- `src/fixtures/live.local.ts`, `scripts/*.local.json` and `docs/SPEC.html`
+  are gitignored and contain real data. They must never be committed.
+- Kill dev servers by port, never by process name — other sessions run too.

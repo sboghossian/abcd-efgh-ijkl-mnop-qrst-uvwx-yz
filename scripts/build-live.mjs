@@ -34,16 +34,29 @@ try {
   GROUP_RULES = JSON.parse(raw).map(([name, re]) => [name, new RegExp(re, "i")]);
 } catch { /* no local overrides: generic rules it is */ }
 
+/**
+ * Decision 12, revised. A cwd inside a repository is an unambiguous, free
+ * signal, so the root wins there. But on this machine most sessions run from
+ * $HOME, where cwd says nothing — so everywhere else, infer from what the
+ * session is actually about: its prompts, ticket refs and touched paths.
+ */
+const REPO_RE = /\/(?:Documents\/Code|Code|dev|repos|src|Projects)\/([^/]+)/;
+
+function prettify(name) {
+  return name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).slice(0, 22);
+}
+
 function groupFor(signal, cwd) {
-  const hay = `${signal || ""} ${cwd || ""}`;
-  for (const [name, re] of GROUP_RULES) if (re.test(hay)) return name;
-  const m = (cwd || "").match(/\/Documents\/Code\/([^/]+)/);
-  if (m) return m[1].replace(/[-_]/g, " ").replace(/\b\w/g, (x) => x.toUpperCase()).slice(0, 22);
+  const inRepo = cwd && cwd !== HOME && REPO_RE.test(cwd);
+  if (inRepo) {
+    for (const [name, re] of GROUP_RULES) if (re.test(cwd)) return name;
+    const m = cwd.match(REPO_RE);
+    if (m && m[1]) return prettify(m[1]);
+  }
+  for (const [name, re] of GROUP_RULES) if (re.test(signal || "")) return name;
   return "Ad hoc";
 }
 
-// First prompts are messy: URLs, pasted blocks, skill preambles. Make a title
-// a person would recognise in a tab strip.
 function titleFrom(a) {
   if (a.title) return a.title;
   if (a.aiTitle) return a.aiTitle;
@@ -63,7 +76,8 @@ function titleFrom(a) {
   t = t.replace(/\s+/g, " ").trim();
 
   if (t.length < 4) {
-    if (a.gitBranch && a.gitBranch !== "main") return a.gitBranch;
+    // "HEAD" is a detached checkout, not a name a person would recognise.
+    if (a.gitBranch && !["main", "master", "HEAD"].includes(a.gitBranch)) return a.gitBranch;
     const base = (a.cwd || a.projectCwd || "").split("/").filter(Boolean).pop();
     return base && base !== path.basename(HOME) ? `Session in ${base}` : "Untitled session";
   }
